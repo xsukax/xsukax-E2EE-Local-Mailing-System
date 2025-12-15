@@ -1,522 +1,432 @@
-# 🔐 xsukax E2EE Local Mailing System
+# xsukax E2EE Local Mailing System
 
-A zero-knowledge, end-to-end encrypted messaging system designed for secure, private communication. This lightweight application provides military-grade encryption while maintaining simplicity in deployment and operation—requiring only PHP and SQLite with no complex server configuration.
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![PHP Version](https://img.shields.io/badge/PHP-%3E%3D7.4-8892BF.svg)](https://www.php.net/)
+[![SQLite](https://img.shields.io/badge/Database-SQLite-003B57.svg)](https://www.sqlite.org/)
 
-## 📋 Project Overview
+A complete end-to-end encrypted local mailing system contained in a single PHP file, featuring zero-knowledge architecture with AES-256-GCM encryption. Deploy instantly on any domain with nginx or Apache — no configuration required.
 
-The xsukax E2EE Local Mailing System is a self-hosted, privacy-focused messaging platform that implements true end-to-end encryption. Unlike traditional email systems where servers can access message content, this system ensures that encryption and decryption occur exclusively on the client side. The server stores only encrypted data and never has access to encryption keys, making it a zero-knowledge system where even the server administrator cannot read user messages.
+## 🔒 Project Overview
 
-**Core Architecture:**
-- **Client**: Single-page HTML5 application with JavaScript cryptography (Web Crypto API)
-- **Backend**: RESTful PHP API with SQLite database
-- **Encryption**: AES-256-GCM with PBKDF2 key derivation (100,000 iterations)
-- **Authentication**: Secure JWT (JSON Web Token) based session management
-- **Database**: Lightweight SQLite with optimized indexes and WAL mode
+The xsukax E2EE Local Mailing System is a self-contained, privacy-focused email solution designed for organizations and individuals who require complete control over their communications infrastructure. Built as a single PHP file with an embedded SQLite database, this application provides enterprise-grade encryption while maintaining simplicity in deployment and management.
 
-The system operates entirely locally or on any standard PHP hosting environment, eliminating dependencies on third-party services and maintaining complete data sovereignty.
+**Core Capabilities:**
+- **Single-File Architecture**: The entire application (API, web interface, and database schema) resides in one PHP file
+- **Zero-Knowledge Encryption**: All message content is encrypted client-side before transmission; the server never has access to plaintext data
+- **Domain-Agnostic**: Automatically adapts to any domain or subdomain without configuration changes
+- **Comprehensive Mail Management**: Full-featured inbox, trash, and compose interfaces with attachment support
+- **RESTful API**: JSON-based API for integration with external applications or custom clients
 
 ## 🛡️ Security and Privacy Benefits
 
-### Zero-Knowledge Architecture
-The fundamental principle of this system is that **the server never has access to your encryption keys or decrypted content**. All cryptographic operations occur within your browser using the Web Crypto API, ensuring that:
-- Messages are encrypted before transmission to the server
-- Decryption keys never leave your device
-- Server administrators cannot decrypt stored messages
-- No plaintext data is ever stored on the server
+### Client-Side Encryption Architecture
 
-### Cryptographic Implementation
-**Client-Side Encryption:**
-- **Algorithm**: AES-256-GCM (Galois/Counter Mode) providing authenticated encryption
-- **Key Derivation**: PBKDF2 with SHA-256, 100,000 iterations, and random salt
-- **Initialization Vector**: Randomly generated 12-byte IV for each encryption operation
-- **Data Format**: Salt (16 bytes) + IV (12 bytes) + Encrypted Data + Authentication Tag
+The application implements a zero-knowledge security model where all sensitive data encryption occurs exclusively in the user's browser using the Web Crypto API. The server stores only encrypted ciphertext, ensuring that even with complete database access, message contents remain unreadable without the user-provided encryption key.
 
-**Server-Side Security:**
-- **Password Storage**: bcrypt hashing with cost factor 12
-- **Session Management**: JWT tokens with HMAC-SHA256 signatures and 7-day expiration
-- **SQL Injection Prevention**: Parameterized queries using PDO prepared statements
-- **Input Validation**: Comprehensive sanitization and validation of all user inputs
-- **CORS Protection**: Configurable cross-origin resource sharing headers
+**Cryptographic Implementation:**
+- **Algorithm**: AES-256-GCM (Galois/Counter Mode) providing both confidentiality and authenticity
+- **Key Derivation**: PBKDF2 with SHA-256, 100,000 iterations, and random 128-bit salts
+- **Initialization Vectors**: Unique 96-bit IVs generated for each encryption operation
+- **Authenticated Encryption**: GCM mode provides built-in message authentication codes (MAC)
+
+### Authentication and Access Control
+
+- **JWT-Based Sessions**: Stateless authentication using HS256-signed JSON Web Tokens with 7-day expiration
+- **Password Security**: Bcrypt hashing (cost factor 12) for all stored credentials
+- **Domain Binding**: JWTs are bound to the specific domain, preventing cross-domain token reuse
+- **Timing Attack Mitigation**: Constant-time password verification with deliberate delays on failed attempts
 
 ### Privacy Guarantees
-1. **End-to-End Encryption**: Only the sender and recipient can decrypt messages
-2. **Forward Secrecy**: Each message uses unique encryption parameters (salt and IV)
-3. **Metadata Minimization**: Only essential routing information is stored unencrypted
-4. **No Third-Party Dependencies**: All operations are self-contained; no external tracking
-5. **Attachment Encryption**: Files are encrypted with the same key as message content
-6. **Secure Key Exchange**: Encryption passwords are shared out-of-band (never transmitted through the system)
 
-### Threat Model Considerations
-**What This System Protects Against:**
-- Server breach: Encrypted data remains unreadable
-- Network eavesdropping: All sensitive data transmitted in encrypted form
-- Malicious server operators: Zero-knowledge design prevents access to content
-- Database theft: Stolen database contains only encrypted messages
+- **Zero Server-Side Knowledge**: The server cannot decrypt message contents, attachments, or metadata
+- **No Third-Party Dependencies**: All cryptographic operations use standard browser APIs
+- **Minimal Data Collection**: Only essential metadata (sender, recipient, timestamps) is stored
+- **User-Controlled Encryption**: Each message can use a unique encryption key shared between sender and recipient
 
-**Important Security Notes:**
-- Users must securely share encryption passwords through alternative channels (Signal, in-person, etc.)
-- Browser security is critical; compromised browsers can intercept keys
-- Physical device security is the user's responsibility
-- The system does not protect against endpoint compromise (malware on sender/recipient devices)
+### Database Security
+
+- **WAL Mode**: Write-Ahead Logging for improved concurrency and crash recovery
+- **Prepared Statements**: All database queries use parameterized statements preventing SQL injection
+- **Access Control**: Message access is strictly limited to authenticated recipients
+- **Soft Deletion**: Messages moved to trash remain encrypted until permanent deletion
 
 ## ✨ Features and Advantages
 
-### Core Functionality
-- **🔒 True Zero-Knowledge E2EE**: Client-side AES-256-GCM encryption with no server-side key access
-- **📎 Encrypted Attachments**: Full support for file attachments with integrated encryption
-- **🗑️ Trash System**: Two-stage deletion (trash then permanent) for message recovery
-- **📧 User-Friendly Mailbox**: Intuitive inbox interface with message preview and metadata
-- **🔑 Secure Authentication**: JWT-based sessions with automatic token expiration
-- **⚡ Fast Performance**: Optimized SQLite database with WAL mode and strategic indexing
-- **🌐 Universal Compatibility**: Works on any domain with PHP support (shared hosting compatible)
-- **📱 Responsive Design**: Mobile-friendly interface using modern CSS
+### Technical Features
 
-### Deployment Advantages
-1. **Minimal Requirements**: Only PHP 7.0+ and SQLite (included with most PHP installations)
-2. **No Server Configuration**: Works with Apache and nginx without modification
-3. **Single-File Deployment**: Just upload `index.php` and `client.html`
-4. **Automatic Database Creation**: SQLite database is created automatically on first run
-5. **Zero-Configuration CORS**: Pre-configured for cross-origin access
-6. **Instant Setup**: Operational within minutes of file upload
+- **Single File Deployment**: Upload one file and start using the system immediately
+- **Self-Contained Database**: SQLite database created automatically on first run
+- **Automatic Schema Migration**: Database tables and indexes created without manual intervention
+- **CORS-Enabled API**: Full cross-origin resource sharing support for external integrations
+- **Responsive Web Interface**: Modern, mobile-friendly UI built with Tailwind CSS
+- **Real-Time Encryption Feedback**: Visual indicators for encryption status and operations
+- **Attachment Support**: Encrypted file attachments with client-side encryption/decryption
+- **Message Organization**: Inbox and trash folders with soft delete functionality
 
-### Operational Benefits
-- **Self-Hosted Privacy**: Complete control over data storage and access
-- **Cost-Effective**: Runs on inexpensive shared hosting or free-tier VPS
-- **No External Dependencies**: No API keys, third-party services, or recurring fees
-- **Scalable Design**: Suitable for personal use or small organizational deployments
-- **Auditable Code**: Open-source codebase enables security audits and verification
-- **Maintenance-Free**: SQLite requires no database administration
+### Operational Advantages
 
-### User Experience
-- **Clean Interface**: GitHub-inspired design aesthetic with intuitive navigation
-- **Real-Time Feedback**: Toast notifications for all operations
-- **Progressive Enhancement**: Works without JavaScript for basic functionality
-- **Accessibility**: Semantic HTML and proper ARIA labels
-- **Multi-Tab Support**: Consistent state across browser tabs
+- **No Configuration Required**: Works immediately on any PHP-enabled server
+- **Universal Compatibility**: Runs on nginx, Apache, and other PHP-compatible web servers
+- **Domain Flexibility**: Automatically adapts to localhost, staging, and production domains
+- **Minimal Server Requirements**: Only PHP 7.4+ and SQLite support needed
+- **Zero Maintenance**: No database server, no background processes, no scheduled tasks
+- **Portable**: Entire system can be backed up by copying one file and one database file
+- **Resource Efficient**: Lightweight footprint suitable for shared hosting environments
 
-## 🚀 Installation Instructions
+### User Experience Benefits
+
+- **Intuitive Interface**: Clean, GitHub-inspired design with minimal learning curve
+- **Instant Feedback**: Real-time notifications for all operations
+- **Secure by Default**: Encryption is automatic and transparent to users
+- **Flexible Key Management**: Users control their own encryption keys per message
+- **Attachment Handling**: Drag-and-drop file attachments with automatic encryption
+- **Message Preview**: View encrypted messages with one-click decryption
+
+## 📋 Installation Instructions
 
 ### Prerequisites
-Ensure your hosting environment meets these requirements:
-- **PHP**: Version 7.0 or higher (PHP 8.x recommended)
-- **SQLite**: PDO SQLite extension (typically enabled by default)
-- **Web Server**: Apache 2.4+ or nginx 1.18+
-- **HTTPS**: SSL/TLS certificate strongly recommended for production use
 
-### Deployment Steps
-
-#### Option 1: Self-Hosted Backend (Recommended for Full Control)
-
-1. **Prepare Your Hosting Environment**
-   - Ensure PHP and SQLite are installed and enabled
-   - Verify write permissions for the web directory (for SQLite database creation)
-
-2. **Upload Backend File**
-   ```bash
-   # Upload index.php to your web server
-   # Example directory structure:
-   /var/www/html/mail/index.php
-   ```
-
-3. **Configure PHP (see PHP Configuration section below)**
-
-4. **Verify Backend Installation**
-   - Navigate to `https://yourdomain.com/mail/index.php` in your browser
-   - You should see a JSON response indicating successful initialization:
-   ```json
-   {
-     "success": true,
-     "domain": "yourdomain.com",
-     "version": "1.0.0",
-     "system": "xsukax E2EE Local Mailing System"
-   }
-   ```
-
-5. **Configure Client**
-   - Open `client.html` in a text editor
-   - Update the default API URL if needed (or enter it in the UI)
-   - Deploy client.html to any web hosting or use the GitHub Pages version
-
-#### Option 2: GitHub Pages Client with Self-Hosted Backend
-
-1. **Deploy Backend** (follow steps 1-4 from Option 1)
-
-2. **Use Pre-Hosted Client**
-   - Navigate to: `https://xsukax.github.io/xsukax-E2EE-Local-Mailing-System/client.html`
-   - Enter your backend URL when prompted: `https://yourdomain.com/mail`
-   - The client will connect to your self-hosted backend
-
-#### Option 3: Fully Self-Hosted (Backend + Client)
-
-1. **Upload Both Files**
-   ```bash
-   /var/www/html/mail/
-   ├── index.php    # Backend API
-   └── client.html  # Web interface
-   ```
-
-2. **Access Your Installation**
-   - Open `https://yourdomain.com/mail/client.html`
-   - The client will automatically detect and connect to the backend
-
-### Post-Installation Configuration
-
-**Security Hardening:**
-1. **Change JWT Secret** (in `index.php`):
-   ```php
-   define('JWT_SECRET', 'your-secure-random-string-here');
-   ```
-   Generate a strong secret using:
-   ```bash
-   openssl rand -base64 32
-   ```
-
-2. **Enable HTTPS**: Obtain an SSL certificate (Let's Encrypt recommended)
-
-3. **Set File Permissions**:
-   ```bash
-   chmod 644 index.php
-   chmod 666 xsukax_mail.db  # Created automatically on first run
-   ```
-
-4. **Configure Error Logging** (recommended for production):
-   ```php
-   ini_set('display_errors', 0);
-   ini_set('log_errors', 1);
-   ```
+- **PHP Version**: 7.4 or higher (PHP 8.0+ recommended)
+- **PHP Extensions**:
+  - PDO (PHP Data Objects)
+  - pdo_sqlite
+  - json
+  - openssl (for password hashing)
+- **Web Server**: nginx, Apache, or any PHP-compatible server
+- **File Permissions**: Write access to the installation directory for SQLite database creation
 
 ### PHP Configuration Requirements
 
-**Required PHP Extensions:**
-- `pdo_sqlite` - PDO driver for SQLite
-- `json` - JSON encoding/decoding
-- `openssl` - Cryptographic functions (for JWT)
+Ensure your `php.ini` file has the following settings configured:
 
-**Recommended php.ini Settings:**
 ```ini
-; Memory limit (adjust based on expected attachment sizes)
-memory_limit = 256M
+; Enable required extensions
+extension=pdo_sqlite
+extension=openssl
+extension=json
 
-; Maximum upload file size
-upload_max_filesize = 50M
-post_max_size = 50M
+; File upload settings (for attachments)
+file_uploads = On
+upload_max_filesize = 10M
+post_max_size = 12M
+max_file_uploads = 10
 
-; Maximum execution time for long operations
-max_execution_time = 300
+; Memory and execution limits
+memory_limit = 128M
+max_execution_time = 60
 
-; Enable error logging (disable display_errors in production)
+; Error logging (recommended for production)
 display_errors = Off
 log_errors = On
-error_log = /var/log/php/error.log
+error_log = /path/to/your/error.log
 
-; Security settings
-expose_php = Off
-allow_url_fopen = Off
-allow_url_include = Off
-
-; SQLite settings (usually defaults are fine)
-sqlite3.defensive = On
+; Session security (if using PHP sessions elsewhere)
+session.cookie_httponly = 1
+session.cookie_secure = 1  ; Enable if using HTTPS
+session.use_strict_mode = 1
 ```
 
-**Verify PHP Configuration:**
+### Step-by-Step Installation
+
+#### 1. Download the Application
+
+Clone the repository or download the `index.php` file:
+
 ```bash
-php -m | grep -E "pdo|sqlite|json|openssl"
+git clone https://github.com/xsukax/xsukax-E2EE-Local-Mailing-System.git
+cd xsukax-E2EE-Local-Mailing-System
 ```
 
-Expected output:
+#### 2. Deploy to Web Server
+
+**For Apache:**
+```bash
+# Copy to web root
+sudo cp index.php /var/www/html/mail/
+
+# Set proper permissions
+sudo chown www-data:www-data /var/www/html/mail/
+sudo chmod 755 /var/www/html/mail/
 ```
-json
-openssl
-pdo_sqlite
+
+**For nginx with PHP-FPM:**
+```bash
+# Copy to web root
+sudo cp index.php /usr/share/nginx/html/mail/
+
+# Set proper permissions
+sudo chown nginx:nginx /usr/share/nginx/html/mail/
+sudo chmod 755 /usr/share/nginx/html/mail/
 ```
 
-### Troubleshooting Common Installation Issues
+**For Shared Hosting:**
+- Upload `index.php` via FTP/SFTP to your desired directory
+- Ensure the directory has write permissions for database creation
 
-**Issue**: "Database initialization failed"
-- **Solution**: Ensure web server has write permissions to the directory
-- **Command**: `chmod 755 /path/to/mail/directory`
+#### 3. Verify Installation
 
-**Issue**: "Connection refused" or CORS errors
-- **Solution**: Verify API_URL is correct and includes `/index.php` for direct access
-- **Check**: CORS headers are properly configured in `index.php`
+Navigate to your installation URL (e.g., `https://yourdomain.com/mail/`) in a web browser. You should see the xsukax E2EE Local Mailing System interface with connection confirmation.
 
-**Issue**: "JWT signature verification failed"
-- **Solution**: Ensure JWT_SECRET is consistent and not changed after user registration
+#### 4. Database Initialization
 
-**Issue**: 500 Internal Server Error
-- **Solution**: Check `error.log` in the same directory as `index.php`
-- **Debug**: Enable `display_errors` temporarily to see detailed error messages
+The SQLite database (`xsukax_mail.db`) will be created automatically on the first request. Verify creation:
+
+```bash
+ls -lh xsukax_mail.db
+# Should show the database file with write permissions
+```
+
+#### 5. Optional: Secure the Installation
+
+**Restrict direct database access:**
+```apache
+# Add to .htaccess (Apache)
+<Files "xsukax_mail.db">
+    Require all denied
+</Files>
+```
+
+**Enable HTTPS (strongly recommended):**
+- Configure SSL/TLS certificates on your web server
+- Force HTTPS redirects for all traffic
 
 ## 📖 Usage Guide
 
-### Getting Started
+### System Architecture
 
-#### 1. Initial Connection
-```
-User → Client Interface → Enter Backend URL → Connect
-```
+The application follows a client-server architecture with clear separation between encrypted and plaintext data:
 
-When you first access the client:
-1. Navigate to the client URL (GitHub Pages or self-hosted)
-2. Enter your backend API URL (e.g., `https://yourdomain.com/mail`)
-3. Click "Connect to Server"
-4. The system will verify connectivity and display the domain
-
-#### 2. User Registration
-```
-Connect → Register → Enter Username → Set Password → Create Account
-```
-
-Registration process:
-1. Click the "Register" tab
-2. Choose a unique username (3-30 alphanumeric characters)
-3. Create a strong password (minimum 6 characters, longer recommended)
-4. Your full email address will be: `username@yourdomain.com`
-5. Click "Create Account"
-
-**Security Note**: Passwords are hashed with bcrypt before storage; the server never stores plaintext passwords.
-
-#### 3. Authentication
-```
-Registration Complete → Login → Enter Credentials → Access Mailbox
+```mermaid
+graph TB
+    A[User Browser] -->|HTTPS| B[PHP Application]
+    B --> C[SQLite Database]
+    A -->|Client-Side Encryption| D[Web Crypto API]
+    D -->|AES-256-GCM| E[Encrypted Data]
+    E -->|JWT Auth| B
+    B -->|Store Ciphertext| C
+    C -->|Retrieve Ciphertext| B
+    B -->|Return to Client| A
+    A -->|Client-Side Decryption| D
+    D -->|Plaintext| F[User Display]
 ```
 
-Login steps:
-1. Enter your username (domain is shown automatically)
-2. Enter your password
-3. Click "Login"
-4. You'll receive a JWT token valid for 7 days
+### User Workflow
 
-### Core Operations
-
-#### Composing and Sending Encrypted Messages
-
-The encryption workflow ensures end-to-end security:
+#### Registration and Authentication
 
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant C as Client Browser
+    participant B as Browser
     participant S as Server
-    participant R as Recipient
-
-    U->>C: Compose message + Set encryption password
-    C->>C: Generate salt & IV
-    C->>C: Derive AES key from password (PBKDF2)
-    C->>C: Encrypt message with AES-256-GCM
-    C->>S: Send encrypted message
-    S->>S: Store encrypted data (unreadable)
-    Note over S: Server never sees password or plaintext
+    participant DB as Database
     
-    R->>S: Request message
-    S->>R: Return encrypted message
-    U-->>R: Share encryption password (out-of-band)
-    R->>R: Enter password & decrypt
+    U->>B: Enter username + password
+    B->>S: POST /register
+    S->>S: Hash password (bcrypt)
+    S->>DB: Store user credentials
+    DB-->>S: User created
+    S-->>B: Registration success
+    B-->>U: Show login prompt
+    
+    U->>B: Login with credentials
+    B->>S: POST /login
+    S->>DB: Verify credentials
+    DB-->>S: User authenticated
+    S->>S: Generate JWT token
+    S-->>B: Return JWT + user data
+    B-->>U: Access granted
 ```
 
-**Step-by-Step Process:**
-
-1. **Navigate to Compose Tab**
-   - Click "✉️ Compose" in the mailbox interface
-
-2. **Fill Message Details**
-   - **Send To**: Enter recipient's username (domain added automatically)
-   - **Subject**: Message subject line (not encrypted, used for organization)
-   - **Encryption Key**: Create a strong password for this specific message
-   - **Message**: Compose your message content
-
-3. **Add Attachments (Optional)**
-   - Click "Choose Files" to select attachments
-   - All files will be encrypted with the same key
-   - Maximum total size: 50MB
-
-4. **Send Message**
-   - Click "🔒 Send Encrypted Message"
-   - Message is encrypted in browser before transmission
-   - Server stores only encrypted data
-
-5. **Share Encryption Key**
-   - **Critical**: You must securely share the encryption password with the recipient
-   - Use a secure channel: Signal, in-person, phone call, etc.
-   - **Never** send the password through this system
-
-#### Reading Encrypted Messages
+#### Message Encryption and Sending
 
 ```mermaid
 sequenceDiagram
-    participant R as Recipient
-    participant C as Client Browser
+    participant U as User
+    participant B as Browser (Client)
+    participant C as Web Crypto API
     participant S as Server
-
-    R->>C: Access Inbox
-    C->>S: Request messages (with JWT)
-    S->>C: Return encrypted message list
-    C->>C: Display encrypted messages
+    participant DB as Database
     
-    R->>C: Click message to open
-    C->>R: Prompt for decryption password
-    R->>C: Enter password
-    C->>S: Fetch full message details
-    S->>C: Return encrypted content
-    C->>C: Derive key from password
-    C->>C: Decrypt message with AES-256-GCM
-    C->>R: Display plaintext message
+    U->>B: Compose message + enter encryption key
+    B->>C: Generate salt + IV
+    C->>C: Derive AES-256 key (PBKDF2)
+    C->>C: Encrypt message (AES-GCM)
+    C-->>B: Return ciphertext
+    B->>S: POST /send (encrypted data)
+    S->>S: Verify JWT token
+    S->>DB: Store encrypted message
+    DB-->>S: Message saved
+    S-->>B: Send confirmation
+    B-->>U: Message sent successfully
 ```
 
-**Reading Process:**
+#### Message Retrieval and Decryption
 
-1. **View Inbox**
-   - Click "📥 Inbox" tab
-   - See list of received messages (subjects visible, content encrypted)
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant B as Browser
+    participant S as Server
+    participant DB as Database
+    participant C as Web Crypto API
+    
+    U->>B: Open inbox
+    B->>S: GET /messages (with JWT)
+    S->>DB: Query messages
+    DB-->>S: Return encrypted messages
+    S-->>B: Message list (encrypted)
+    B-->>U: Display message list
+    
+    U->>B: Click message + enter decryption key
+    B->>S: GET /message/id
+    S->>DB: Retrieve full message
+    DB-->>S: Encrypted content
+    S-->>B: Return ciphertext
+    B->>C: Extract salt + IV from ciphertext
+    C->>C: Derive key + decrypt (AES-GCM)
+    C-->>B: Plaintext message
+    B-->>U: Display decrypted message
+```
 
-2. **Open Message**
-   - Click on any message to open
-   - System prompts for decryption password
+### Basic Operations
 
-3. **Decrypt and Read**
-   - Enter the encryption password shared by the sender
-   - Click "🔓 Decrypt & View"
-   - Message content and attachments are decrypted in real-time
+#### 1. Register a New Account
 
-4. **Download Attachments**
-   - Decrypted attachments appear as download links
-   - Click to download the original file
+1. Open the application in your web browser
+2. The registration form is displayed by default
+3. Enter your desired username (3-30 alphanumeric characters)
+4. Create a strong password (minimum 6 characters)
+5. Click "Create Account"
+6. Your email address will be `username@yourdomain.com`
 
-#### Message Management
+#### 2. Login to Your Account
+
+1. Click the "Login" tab if not already selected
+2. Enter your username (without the domain)
+3. Enter your password
+4. Click "Login"
+5. Upon successful authentication, you'll be directed to your mailbox
+
+#### 3. Compose and Send Encrypted Messages
+
+1. Navigate to the "Compose" tab
+2. Enter the recipient's username (without domain)
+3. Add a subject line
+4. **Important**: Enter an encryption key (password) — this must be shared with the recipient through a secure channel
+5. Type your message content
+6. Optionally attach files using the file picker
+7. Click "Send Encrypted Message"
+8. The message is encrypted in your browser and transmitted to the server
+
+**Security Note**: The encryption key you choose is never sent to the server. Share this key with your recipient using a secure out-of-band channel (phone call, secure messenger, in-person, etc.).
+
+#### 4. Read Encrypted Messages
+
+1. Navigate to the "Inbox" tab
+2. Click on any message to view it
+3. Enter the decryption key (shared by the sender)
+4. Click "Decrypt"
+5. The message content and any attachments will be decrypted and displayed
+6. Download encrypted attachments by clicking on them
+
+#### 5. Manage Messages
+
+- **Move to Trash**: Click the trash button when viewing a message
+- **Permanent Delete**: Navigate to "Trash" tab and delete messages permanently
+- **Refresh**: Use the refresh button to check for new messages
+
+### API Integration
+
+The system provides a RESTful API for custom client development:
+
+#### Authentication Endpoints
+
+**Register User:**
+```bash
+POST /register
+Content-Type: application/json
+
+{
+  "username": "alice",
+  "password": "securepassword123"
+}
+```
+
+**Login:**
+```bash
+POST /login
+Content-Type: application/json
+
+{
+  "email": "alice@yourdomain.com",
+  "password": "securepassword123"
+}
+```
+
+#### Message Endpoints
+
+**Send Message:**
+```bash
+POST /send
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+
+{
+  "to": "bob@yourdomain.com",
+  "subject": "Meeting Tomorrow",
+  "encrypted_content": "<base64_encrypted_data>",
+  "encrypted_attachments": [
+    {
+      "filename": "document.pdf",
+      "data": "<base64_encrypted_file>"
+    }
+  ]
+}
+```
+
+**List Messages:**
+```bash
+GET /messages?type=inbox
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Get Single Message:**
+```bash
+GET /message/123
+Authorization: Bearer <JWT_TOKEN>
+```
 
 **Move to Trash:**
-- Click "🗑️ Move to Trash" when viewing a message
-- Message moves to Trash folder (recoverable)
-
-**Permanent Deletion:**
-- Open "🗑️ Trash" tab
-- Click on message to view
-- Click "⚠️ Delete Permanently"
-- Message is irreversibly deleted
-
-**Refresh Mailbox:**
-- Click "🔄 Refresh" button to load new messages
-- Automatic refresh every time you switch tabs
-
-### System Architecture
-
-```mermaid
-graph TB
-    subgraph "Client Layer (Browser)"
-        A[User Interface] --> B[Web Crypto API]
-        B --> C[AES-256-GCM Encryption]
-        B --> D[PBKDF2 Key Derivation]
-        C --> E[Encrypted Data]
-    end
-    
-    subgraph "Network Layer"
-        E --> F[HTTPS/TLS]
-        F --> G[JWT Authentication]
-    end
-    
-    subgraph "Server Layer (PHP)"
-        G --> H[API Router]
-        H --> I[Authentication Handler]
-        H --> J[Message Handler]
-        I --> K[JWT Verification]
-        J --> L[Data Validation]
-    end
-    
-    subgraph "Storage Layer (SQLite)"
-        L --> M[(Users Table)]
-        L --> N[(Messages Table)]
-        N --> O[Encrypted Content]
-        N --> P[Encrypted Attachments]
-    end
-    
-    style C fill:#90EE90
-    style O fill:#FFB6C6
-    style P fill:#FFB6C6
+```bash
+POST /message/123/trash
+Authorization: Bearer <JWT_TOKEN>
 ```
 
-**Key Points:**
-- Green boxes: Client-side encryption (secure)
-- Pink boxes: Encrypted storage (server cannot read)
-- All sensitive data is encrypted before leaving the browser
-- Server only handles routing and storage of encrypted data
-
-### Advanced Usage
-
-#### Multi-User Communication
-The system supports multiple users on the same domain:
-- Each user registers with a unique username
-- Users can message any other registered user
-- Format: `username@yourdomain.com`
-
-#### Security Best Practices
-1. **Strong Encryption Passwords**: Use unique, complex passwords for each message
-2. **Secure Password Sharing**: Never share encryption keys through the system itself
-3. **Regular Password Changes**: Change your account password periodically
-4. **Logout After Use**: Always logout on shared or public computers
-5. **HTTPS Only**: Never use the system over unencrypted HTTP connections
-6. **Verify Recipients**: Confirm recipient identity before sending sensitive information
-
-#### API Endpoints Reference
-
-For developers integrating with the system:
-
-| Endpoint | Method | Auth Required | Purpose |
-|----------|--------|---------------|---------|
-| `/` or `/info` | GET | No | Server information and status |
-| `/register` | POST | No | Create new user account |
-| `/login` | POST | No | Authenticate and receive JWT |
-| `/send` | POST | Yes | Send encrypted message |
-| `/messages?type={inbox\|trash}` | GET | Yes | List messages |
-| `/message/{id}` | GET | Yes | Get specific message |
-| `/message/{id}/trash` | POST | Yes | Move message to trash |
-| `/message/{id}` | DELETE | Yes | Permanently delete message |
-
-**Authentication**: Include JWT token in header: `Authorization: Bearer {token}`
-
-### Data Flow Diagram
-
-```mermaid
-flowchart LR
-    A[User Composes Message] --> B{Encryption Key Entered?}
-    B -->|Yes| C[Generate Salt + IV]
-    B -->|No| D[Prompt for Key]
-    D --> C
-    C --> E[Derive AES Key via PBKDF2]
-    E --> F[Encrypt Content + Attachments]
-    F --> G[Send to Server via HTTPS]
-    G --> H{Server Validates}
-    H -->|Valid| I[Store Encrypted Data]
-    H -->|Invalid| J[Return Error]
-    I --> K[Notify Sender: Success]
-    
-    L[Recipient Requests Message] --> M[Server Returns Encrypted Data]
-    M --> N[Recipient Enters Decryption Key]
-    N --> O[Derive Same AES Key]
-    O --> P{Decryption Successful?}
-    P -->|Yes| Q[Display Plaintext]
-    P -->|No| R[Wrong Password Error]
+**Permanent Delete:**
+```bash
+DELETE /message/123
+Authorization: Bearer <JWT_TOKEN>
 ```
 
-## 📄 Licensing Information
+### Best Practices
+
+1. **Key Management**: Use strong, unique encryption keys for sensitive messages
+2. **Key Sharing**: Never share encryption keys through the same channel as the encrypted message
+3. **Regular Backups**: Backup both `index.php` and `xsukax_mail.db` regularly
+4. **HTTPS Required**: Always use HTTPS in production to protect authentication tokens
+5. **Password Strength**: Enforce strong passwords for user accounts
+6. **Access Control**: Restrict file system access to the installation directory
+7. **Monitoring**: Regularly review `error.log` for security issues
+
+## 📄 License
 
 This project is licensed under the GNU General Public License v3.0.
 
 ---
 
-## 🤝 Contributing
+**Repository**: [https://github.com/xsukax/xsukax-E2EE-Local-Mailing-System](https://github.com/xsukax/xsukax-E2EE-Local-Mailing-System)
 
-Contributions are welcome! Please feel free to submit issues, fork the repository, and create pull requests for bug fixes, features, or documentation improvements.
+**Version**: 1.0.0
 
-## 📞 Support
-
-For issues, questions, or feature requests, please visit:
-- **GitHub Repository**: [https://github.com/xsukax/xsukax-E2EE-Local-Mailing-System](https://github.com/xsukax/xsukax-E2EE-Local-Mailing-System)
-- **Live Client**: [https://xsukax.github.io/xsukax-E2EE-Local-Mailing-System/client.html](https://xsukax.github.io/xsukax-E2EE-Local-Mailing-System/client.html)
-
-## ⚠️ Security Disclosure
-
-If you discover a security vulnerability, please email the maintainer directly rather than opening a public issue. Responsible disclosure is appreciated.
-
----
-
-**Built with privacy and security as foundational principles. Your data, your control.**
+**Author**: xsukax
