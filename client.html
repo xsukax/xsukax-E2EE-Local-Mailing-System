@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xsukax E2EE Local Mailing System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: #f6f8fa; color: #24292f; }
+        .container { max-width: 1280px; margin: 0 auto; padding: 2rem; }
+        .card { background: white; border: 1px solid #d0d7de; border-radius: 6px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .btn { padding: 0.5rem 1rem; border-radius: 6px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1px solid; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-primary { background: #2da44e; color: white; border-color: rgba(27,31,36,0.15); }
+        .btn-primary:hover { background: #2c974b; }
+        .btn-secondary { background: #f6f8fa; color: #24292f; border-color: rgba(27,31,36,0.15); }
+        .btn-secondary:hover { background: #f3f4f6; }
+        .btn-danger { background: #cf222e; color: white; border-color: rgba(27,31,36,0.15); }
+        .btn-danger:hover { background: #a40e26; }
+        .input { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; background: #ffffff; transition: border-color 0.2s; }
+        .input:focus { outline: none; border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,0.1); }
+        .header { background: #24292f; color: white; padding: 1rem 0; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+        .header-content { max-width: 1280px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+        .logo-icon { font-size: 1.75rem; }
+        .tab-nav { display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #d0d7de; }
+        .tab { padding: 0.75rem 1rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; font-weight: 500; color: #57606a; }
+        .tab.active { color: #24292f; border-bottom-color: #fd8c73; }
+        .tab:hover { color: #24292f; }
+        .message-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .message-item { padding: 1rem; border: 1px solid #d0d7de; border-radius: 6px; cursor: pointer; transition: all 0.2s; background: white; }
+        .message-item:hover { border-color: #0969da; background: #f6f8fa; }
+        .message-item.unread { background: #ddf4ff; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal { background: white; border-radius: 6px; padding: 1.5rem; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #d0d7de; }
+        .modal-title { font-size: 1.25rem; font-weight: 600; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #57606a; padding: 0; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+        .close-btn:hover { background: #f6f8fa; color: #24292f; }
+        .notification { position: fixed; top: 1rem; right: 1rem; background: white; border: 1px solid #d0d7de; border-radius: 6px; padding: 1rem 1.5rem; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 2000; min-width: 300px; animation: slideIn 0.3s ease-out; }
+        .notification.success { border-left: 4px solid #2da44e; }
+        .notification.error { border-left: 4px solid #cf222e; }
+        .notification.info { border-left: 4px solid #0969da; }
+        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 14px; color: #24292f; }
+        .form-group { margin-bottom: 1rem; }
+        .textarea { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 100px; }
+        .textarea:focus { outline: none; border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,0.1); }
+        .attachment-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+        .attachment-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; font-size: 12px; }
+        .attachment-item button { background: none; border: none; color: #cf222e; cursor: pointer; font-size: 1rem; padding: 0; width: 1.25rem; height: 1.25rem; display: flex; align-items: center; justify-content: center; border-radius: 3px; }
+        .attachment-item button:hover { background: #ffebe9; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #57606a; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+        .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .badge-success { background: #ddf4ff; color: #0969da; }
+        .loading { display: inline-block; width: 1rem; height: 1rem; border: 2px solid #f3f4f6; border-top-color: #2da44e; border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .gap-2 { gap: 0.5rem; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .text-sm { font-size: 14px; }
+        .text-xs { font-size: 12px; }
+        .text-gray { color: #57606a; }
+        .font-semibold { font-weight: 600; }
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .w-full { width: 100%; }
+        .hint { font-size: 12px; color: #57606a; margin-top: 0.25rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo"><span class="logo-icon">🔒</span> xsukax E2EE Local Mailing System</div>
+            <div id="userInfo" class="hidden text-sm"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Connection Setup -->
+        <div id="setupView" class="card">
+            <h2 class="text-xl font-semibold mb-4">Connect to Server</h2>
+            <div class="form-group">
+                <label class="label">API Server URL</label>
+                <input type="text" id="apiUrl" class="input" placeholder="https://example.com/mail">
+                <p class="hint">Enter the URL where your backend is deployed (without /index.php)</p>
+            </div>
+            <button onclick="connectToServer()" class="btn btn-primary">Connect to Server</button>
+        </div>
+
+        <!-- Auth View -->
+        <div id="authView" class="card hidden">
+            <h2 class="text-xl font-semibold mb-4">Authentication</h2>
+            <div class="flex gap-2 mb-4">
+                <button onclick="showRegister()" id="registerTab" class="btn btn-secondary flex-1">Register</button>
+                <button onclick="showLogin()" id="loginTab" class="btn btn-secondary flex-1">Login</button>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="hidden">
+                <div class="form-group">
+                    <label class="label">Username</label>
+                    <div class="flex gap-2 items-center">
+                        <input type="text" id="regUsername" class="input flex-1" placeholder="username">
+                        <span class="text-gray">@<span id="domainDisplay">domain.com</span></span>
+                    </div>
+                    <p class="hint">Choose a unique username (3-30 characters, alphanumeric only)</p>
+                </div>
+                <div class="form-group">
+                    <label class="label">Password</label>
+                    <input type="password" id="regPassword" class="input" placeholder="Enter a strong password">
+                    <p class="hint">Minimum 6 characters</p>
+                </div>
+                <button onclick="register()" class="btn btn-primary w-full">Create Account</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="hidden">
+                <div class="form-group">
+                    <label class="label">Username</label>
+                    <div class="flex gap-2 items-center">
+                        <input type="text" id="loginUsername" class="input flex-1" placeholder="username">
+                        <span class="text-gray">@<span id="loginDomainDisplay">domain.com</span></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="label">Password</label>
+                    <input type="password" id="loginPassword" class="input" placeholder="Enter your password">
+                </div>
+                <button onclick="login()" class="btn btn-primary w-full">Login</button>
+            </div>
+        </div>
+
+        <!-- Mail View -->
+        <div id="mailView" class="hidden">
+            <div class="card">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">📬 Mailbox</h2>
+                    <button onclick="logout()" class="btn btn-secondary">Logout</button>
+                </div>
+
+                <div class="tab-nav">
+                    <div class="tab active" onclick="switchTab('inbox')">📥 Inbox</div>
+                    <div class="tab" onclick="switchTab('trash')">🗑️ Trash</div>
+                    <div class="tab" onclick="switchTab('compose')">✉️ Compose</div>
+                </div>
+
+                <!-- Inbox Tab -->
+                <div id="inboxTab" class="tab-content">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold">Inbox</h3>
+                        <button onclick="loadMessages('inbox')" class="btn btn-secondary">🔄 Refresh</button>
+                    </div>
+                    <div id="inboxMessages" class="message-list"></div>
+                </div>
+
+                <!-- Trash Tab -->
+                <div id="trashTab" class="tab-content hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold">Trash</h3>
+                        <button onclick="loadMessages('trash')" class="btn btn-secondary">🔄 Refresh</button>
+                    </div>
+                    <div id="trashMessages" class="message-list"></div>
+                </div>
+
+                <!-- Compose Tab -->
+                <div id="composeTab" class="tab-content hidden">
+                    <h3 class="font-semibold mb-4">Compose New Message</h3>
+                    <div class="form-group">
+                        <label class="label">Send To</label>
+                        <div class="flex gap-2 items-center">
+                            <input type="text" id="composeTo" class="input flex-1" placeholder="recipient username">
+                            <span class="text-gray">@<span id="composeDomainDisplay">domain.com</span></span>
+                        </div>
+                        <p class="hint">Enter the recipient's username</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Subject</label>
+                        <input type="text" id="composeSubject" class="input" placeholder="Message subject">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Encryption Key (Password) 🔐</label>
+                        <input type="password" id="composeKey" class="input" placeholder="Enter encryption password for this message">
+                        <p class="hint">This password is required to decrypt the message. Share it securely with the recipient.</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Message</label>
+                        <textarea id="composeContent" class="textarea" placeholder="Type your encrypted message here..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Attachments (Optional) 📎</label>
+                        <input type="file" id="composeAttachments" class="input" multiple onchange="handleAttachmentSelect(event)">
+                        <p class="hint">All attachments will be encrypted with the same key</p>
+                        <div id="attachmentList" class="attachment-list"></div>
+                    </div>
+                    <button onclick="sendMessage()" class="btn btn-primary">🔒 Send Encrypted Message</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let API_URL = '';
+        let AUTH_TOKEN = '';
+        let CURRENT_USER = null;
+        let DOMAIN = '';
+        let selectedAttachments = [];
+
+        // Utility: Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 4000);
+        }
+
+        // Utility: Show modal
+        function showModal(title, content) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">${title}</h3>
+                        <button class="close-btn" onclick="closeModal(this)">×</button>
+                    </div>
+                    <div>${content}</div>
+                </div>
+            `;
+            overlay.onclick = (e) => { if (e.target === overlay) closeModal(overlay.querySelector('.close-btn')); };
+            document.body.appendChild(overlay);
+        }
+
+        function closeModal(btn) {
+            btn.closest('.modal-overlay').remove();
+        }
+
+        // Connect to server
+        async function connectToServer() {
+            API_URL = document.getElementById('apiUrl').value.trim();
+            if (!API_URL) {
+                showNotification('Please enter API URL', 'error');
+                return;
+            }
+
+            // Remove trailing slash
+            API_URL = API_URL.replace(/\/$/, '');
+
+            // For nginx without rewrite, we need to call index.php directly
+            const testUrl = `${API_URL}/index.php`;
+
+            try {
+                console.log(`Connecting to: ${testUrl}`);
+                const response = await fetch(testUrl, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const text = await response.text();
+                console.log(`Response:`, text.substring(0, 200));
+
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Server returned invalid JSON. Make sure index.php is uploaded correctly.');
+                }
+                
+                if (data.success && data.domain) {
+                    // Use index.php as the base for all API calls
+                    API_URL = testUrl;
+                    DOMAIN = data.domain;
+                    document.getElementById('domainDisplay').textContent = DOMAIN;
+                    document.getElementById('loginDomainDisplay').textContent = DOMAIN;
+                    document.getElementById('composeDomainDisplay').textContent = DOMAIN;
+                    document.getElementById('setupView').classList.add('hidden');
+                    document.getElementById('authView').classList.remove('hidden');
+                    showRegister();
+                    showNotification(`✅ Connected to ${DOMAIN}!`, 'success');
+                    console.log('✅ Connected successfully! API_URL:', API_URL);
+                } else {
+                    throw new Error('Server returned invalid response structure');
+                }
+            } catch (error) {
+                showNotification(`Connection failed: ${error.message}`, 'error');
+                console.error('Connection failed:', error);
+                console.error('Make sure index.php is uploaded to:', API_URL);
+            }
+        }
+
+        // Auth UI
+        function showRegister() {
+            document.getElementById('registerTab').classList.remove('btn-secondary');
+            document.getElementById('registerTab').classList.add('btn-primary');
+            document.getElementById('loginTab').classList.remove('btn-primary');
+            document.getElementById('loginTab').classList.add('btn-secondary');
+            document.getElementById('registerForm').classList.remove('hidden');
+            document.getElementById('loginForm').classList.add('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('loginTab').classList.remove('btn-secondary');
+            document.getElementById('loginTab').classList.add('btn-primary');
+            document.getElementById('registerTab').classList.remove('btn-primary');
+            document.getElementById('registerTab').classList.add('btn-secondary');
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+        }
+
+        // Crypto utilities
+        async function deriveKey(password, salt) {
+            const encoder = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey(
+                'raw',
+                encoder.encode(password),
+                'PBKDF2',
+                false,
+                ['deriveKey']
+            );
+
+            return crypto.subtle.deriveKey(
+                {
+                    name: 'PBKDF2',
+                    salt: salt,
+                    iterations: 100000,
+                    hash: 'SHA-256'
+                },
+                keyMaterial,
+                { name: 'AES-GCM', length: 256 },
+                false,
+                ['encrypt', 'decrypt']
+            );
+        }
+
+        async function encryptData(data, password) {
+            const encoder = new TextEncoder();
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const key = await deriveKey(password, salt);
+
+            const encrypted = await crypto.subtle.encrypt(
+                { name: 'AES-GCM', iv: iv },
+                key,
+                encoder.encode(data)
+            );
+
+            const result = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+            result.set(salt, 0);
+            result.set(iv, salt.length);
+            result.set(new Uint8Array(encrypted), salt.length + iv.length);
+
+            return btoa(String.fromCharCode(...result));
+        }
+
+        async function decryptData(encryptedData, password) {
+            try {
+                const data = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+                const salt = data.slice(0, 16);
+                const iv = data.slice(16, 28);
+                const encrypted = data.slice(28);
+
+                const key = await deriveKey(password, salt);
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv: iv },
+                    key,
+                    encrypted
+                );
+
+                return new TextDecoder().decode(decrypted);
+            } catch (error) {
+                throw new Error('Decryption failed - wrong password');
+            }
+        }
+
+        // Registration
+        async function register() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+
+            if (!username || !password) {
+                showNotification('Please fill all fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('✅ Registration successful! Please login.', 'success');
+                    showLogin();
+                    document.getElementById('loginUsername').value = username;
+                } else {
+                    showNotification(data.message || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Registration failed', 'error');
+            }
+        }
+
+        // Login
+        async function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                showNotification('Please fill all fields', 'error');
+                return;
+            }
+
+            // Construct full email address
+            const email = `${username}@${DOMAIN}`;
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    AUTH_TOKEN = data.token;
+                    CURRENT_USER = data.user;
+                    document.getElementById('authView').classList.add('hidden');
+                    document.getElementById('mailView').classList.remove('hidden');
+                    document.getElementById('userInfo').classList.remove('hidden');
+                    document.getElementById('userInfo').textContent = `Logged in as ${CURRENT_USER.email}`;
+                    showNotification('✅ Login successful!', 'success');
+                    loadMessages('inbox');
+                } else {
+                    showNotification(data.message || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Login failed', 'error');
+            }
+        }
+
+        // Logout
+        function logout() {
+            AUTH_TOKEN = '';
+            CURRENT_USER = null;
+            document.getElementById('mailView').classList.add('hidden');
+            document.getElementById('authView').classList.remove('hidden');
+            document.getElementById('userInfo').classList.add('hidden');
+            showNotification('Logged out successfully', 'success');
+        }
+
+        // Switch tabs
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+            event.target.classList.add('active');
+            document.getElementById(`${tab}Tab`).classList.remove('hidden');
+
+            if (tab === 'inbox' || tab === 'trash') {
+                loadMessages(tab);
+            }
+        }
+
+        // Handle attachment selection
+        function handleAttachmentSelect(event) {
+            selectedAttachments = Array.from(event.target.files);
+            displayAttachments();
+        }
+
+        function displayAttachments() {
+            const list = document.getElementById('attachmentList');
+            list.innerHTML = selectedAttachments.map((file, index) => `
+                <div class="attachment-item">
+                    <span>📎 ${file.name} (${(file.size / 1024).toFixed(2)} KB)</span>
+                    <button onclick="removeAttachment(${index})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function removeAttachment(index) {
+            selectedAttachments.splice(index, 1);
+            displayAttachments();
+        }
+
+        // Send message
+        async function sendMessage() {
+            const toUsername = document.getElementById('composeTo').value.trim();
+            const subject = document.getElementById('composeSubject').value.trim();
+            const key = document.getElementById('composeKey').value;
+            const content = document.getElementById('composeContent').value;
+
+            if (!toUsername || !subject || !key || !content) {
+                showNotification('Please fill all required fields', 'error');
+                return;
+            }
+
+            // Construct full email address
+            const to = `${toUsername}@${DOMAIN}`;
+
+            try {
+                // Encrypt content
+                const encryptedContent = await encryptData(content, key);
+
+                // Encrypt attachments
+                let encryptedAttachments = [];
+                for (const file of selectedAttachments) {
+                    const reader = new FileReader();
+                    const fileData = await new Promise((resolve) => {
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.readAsDataURL(file);
+                    });
+
+                    const encryptedFile = await encryptData(fileData, key);
+                    encryptedAttachments.push({
+                        filename: file.name,
+                        data: encryptedFile
+                    });
+                }
+
+                const response = await fetch(`${API_URL}/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    },
+                    body: JSON.stringify({
+                        to,
+                        subject,
+                        encrypted_content: encryptedContent,
+                        encrypted_attachments: encryptedAttachments
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('✅ Message sent successfully!', 'success');
+                    // Clear form
+                    document.getElementById('composeTo').value = '';
+                    document.getElementById('composeSubject').value = '';
+                    document.getElementById('composeKey').value = '';
+                    document.getElementById('composeContent').value = '';
+                    document.getElementById('composeAttachments').value = '';
+                    selectedAttachments = [];
+                    displayAttachments();
+                } else {
+                    showNotification(data.message || 'Failed to send message', 'error');
+                }
+            } catch (error) {
+                showNotification('Failed to send message', 'error');
+            }
+        }
+
+        // Load messages
+        async function loadMessages(type) {
+            try {
+                const response = await fetch(`${API_URL}/messages?type=${type}`, {
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayMessages(data.messages, type);
+                } else {
+                    showNotification('Failed to load messages', 'error');
+                }
+            } catch (error) {
+                showNotification('Failed to load messages', 'error');
+            }
+        }
+
+        // Display messages
+        function displayMessages(messages, type) {
+            const container = document.getElementById(`${type}Messages`);
+            
+            if (!messages || messages.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No messages in ${type}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = messages.map(msg => `
+                <div class="message-item" onclick="viewMessage(${msg.id}, '${type}')">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-semibold">From: ${msg.from_user}</span>
+                        <span class="text-xs text-gray">${new Date(msg.created_at).toLocaleString()}</span>
+                    </div>
+                    <div class="font-semibold text-sm mb-1">📧 ${msg.subject}</div>
+                    <div class="text-xs text-gray">🔒 Encrypted - Click to decrypt and view</div>
+                    ${msg.attachments_count > 0 ? `<div class="text-xs text-gray mt-1">📎 ${msg.attachments_count} attachment(s)</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // View message
+        async function viewMessage(id, type) {
+            try {
+                const response = await fetch(`${API_URL}/message/${id}`, {
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showDecryptModal(data.message, type);
+                }
+            } catch (error) {
+                showNotification('Failed to load message', 'error');
+            }
+        }
+
+        // Show decrypt modal
+        function showDecryptModal(message, type) {
+            const content = `
+                <div class="form-group">
+                    <label class="label">🔐 Enter decryption key (password)</label>
+                    <input type="password" id="decryptKey" class="input" placeholder="Enter the encryption password">
+                    <p class="hint">The sender shared this password with you securely</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="decryptMessage(${message.id}, '${type}')" class="btn btn-primary">🔓 Decrypt & View</button>
+                    ${type === 'inbox' ? `<button onclick="moveToTrash(${message.id})" class="btn btn-danger">🗑️ Move to Trash</button>` : ''}
+                    ${type === 'trash' ? `<button onclick="permanentDelete(${message.id})" class="btn btn-danger">⚠️ Delete Permanently</button>` : ''}
+                </div>
+            `;
+
+            showModal(`📨 Message from ${message.from_user} - ${message.subject}`, content);
+        }
+
+        // Decrypt message
+        async function decryptMessage(id, type) {
+            const key = document.getElementById('decryptKey').value;
+            
+            if (!key) {
+                showNotification('Please enter decryption key', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/message/${id}`, {
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    const decryptedContent = await decryptData(data.message.encrypted_content, key);
+                    
+                    let attachmentsHtml = '';
+                    if (data.message.encrypted_attachments) {
+                        const attachments = JSON.parse(data.message.encrypted_attachments);
+                        attachmentsHtml = '<div class="mt-4"><strong>📎 Attachments:</strong><div class="attachment-list mt-2">';
+                        
+                        for (const att of attachments) {
+                            const decryptedData = await decryptData(att.data, key);
+                            attachmentsHtml += `
+                                <div class="attachment-item">
+                                    <a href="${decryptedData}" download="${att.filename}" class="text-blue-600">💾 ${att.filename}</a>
+                                </div>
+                            `;
+                        }
+                        attachmentsHtml += '</div></div>';
+                    }
+
+                    const content = `
+                        <div class="mb-4">
+                            <strong>From:</strong> ${data.message.from_user}<br>
+                            <strong>Subject:</strong> ${data.message.subject}<br>
+                            <strong>Date:</strong> ${new Date(data.message.created_at).toLocaleString()}
+                        </div>
+                        <div class="card">
+                            <div style="white-space: pre-wrap;">${decryptedContent}</div>
+                        </div>
+                        ${attachmentsHtml}
+                        <div class="flex gap-2 mt-4">
+                            ${type === 'inbox' ? `<button onclick="moveToTrash(${id})" class="btn btn-danger">🗑️ Move to Trash</button>` : ''}
+                            ${type === 'trash' ? `<button onclick="permanentDelete(${id})" class="btn btn-danger">⚠️ Delete Permanently</button>` : ''}
+                        </div>
+                    `;
+
+                    closeModal(document.querySelector('.close-btn'));
+                    showModal(`✉️ Message from ${data.message.from_user}`, content);
+                } else {
+                    showNotification('Failed to load message', 'error');
+                }
+            } catch (error) {
+                showNotification(error.message || 'Decryption failed - wrong password', 'error');
+            }
+        }
+
+        // Move to trash
+        async function moveToTrash(id) {
+            try {
+                const response = await fetch(`${API_URL}/message/${id}/trash`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Message moved to trash', 'success');
+                    closeModal(document.querySelector('.close-btn'));
+                    loadMessages('inbox');
+                }
+            } catch (error) {
+                showNotification('Failed to move message', 'error');
+            }
+        }
+
+        // Permanent delete
+        async function permanentDelete(id) {
+            try {
+                const response = await fetch(`${API_URL}/message/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Message deleted permanently', 'success');
+                    closeModal(document.querySelector('.close-btn'));
+                    loadMessages('trash');
+                }
+            } catch (error) {
+                showNotification('Failed to delete message', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
